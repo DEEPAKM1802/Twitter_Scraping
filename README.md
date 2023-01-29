@@ -1,6 +1,5 @@
 # Twitter_Scraping
 The following is the first project from GUVI datascience course regarding twitter scraping, storing the result in mongodb and building a solid UI from user interaction.
-The following program is used to scrape twiter using snscrape pacage and streamlit is used for UI.
 
 The first block of code includes all the imports for packages used in the program.
 
