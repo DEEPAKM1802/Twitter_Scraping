@@ -3,7 +3,7 @@
 
 # In[2]:
 
-
+#importing important packages
 import snscrape.modules.twitter as sntwitter
 import pandas as pd
 import pymongo
@@ -14,7 +14,7 @@ import os
 
 # In[12]:
 
-
+3 #function used for twiter scraping
 def twiter_scraping(query, limit):
     
     tweets = []
@@ -33,8 +33,8 @@ def twiter_scraping(query, limit):
 
 # In[13]:
 
-
-def df_to_mongo(df, conn="mongodb://deepakmongo:!AMDEEPAK1802@ac-hmiqjuj-shard-00-00.vk1yvh9.mongodb.net:27017,ac-hmiqjuj-shard-00-01.vk1yvh9.mongodb.net:27017,ac-hmiqjuj-shard-00-02.vk1yvh9.mongodb.net:27017/?ssl=true&replicaSet=atlas-wzamdc-shard-0&authSource=admin&retryWrites=true&w=majority"):
+#function to upload data into mongo db (Please enter mongo url in conn)
+def df_to_mongo(df, conn="****************************************************************************************"):
     client = pymongo.MongoClient(conn)
     db = client['tweets']
     collection = db['twiter']
@@ -43,7 +43,7 @@ def df_to_mongo(df, conn="mongodb://deepakmongo:!AMDEEPAK1802@ac-hmiqjuj-shard-0
 
 # In[ ]:
 
-
+#streamlit function for UI
 def streamlit_UI():
 
     #Input fields to be dispalyed
@@ -105,5 +105,5 @@ def streamlit_UI():
 
 # In[ ]:
 
-
+#Main call to UI which leads to excution of entire program
 maincall = streamlit_UI()
