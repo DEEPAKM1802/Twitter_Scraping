@@ -15,7 +15,7 @@ import os
 #**********************************************************************************************************************************************
 
 
-3 #function used for twiter scraping
+#function used for twiter scraping
 def twiter_scraping(query, limit):
     
     tweets = []
