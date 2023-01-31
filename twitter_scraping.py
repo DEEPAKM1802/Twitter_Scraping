@@ -2,11 +2,10 @@
 # coding: utf-8
 
 # **********************************************************************************************************************************************
-
 # importing important packages
-import snscrape.modules.twitter as sntwitter
 import pandas as pd
 import pymongo
+import snscrape.modules.twitter as sntwitter
 import streamlit as st
 from datetime import datetime, timedelta
 
@@ -38,10 +37,11 @@ def twiter_scraping(query, limit):
 
 
 # function to upload data into mongo db (Please enter mongo url in conn)
-def df_to_mongo(df, conn="****************************************************************************************"):
+def df_to_mongo(df,
+                conn="mongodb://deepakmongo:!AMDEEPAK1802@ac-hmiqjuj-shard-00-00.vk1yvh9.mongodb.net:27017,ac-hmiqjuj-shard-00-01.vk1yvh9.mongodb.net:27017,ac-hmiqjuj-shard-00-02.vk1yvh9.mongodb.net:27017/?ssl=true&replicaSet=atlas-wzamdc-shard-0&authSource=admin&retryWrites=true&w=majority"):
     client = pymongo.MongoClient(conn)
-    db = client['tweets']
-    collection = db['twiter']
+    db = client['twitter']
+    collection = db['tweets']
     collection.insert_many(df.to_dict('records'))
 
 
@@ -56,55 +56,53 @@ def streamlit_UI():
         st.title(' :blue[Twitter Scraping]')
     header2 = st.subheader("Welcome!!! Please enter data to be searched")
 
-    # Input field with submit button( form)
-    with st.form("my_form"):
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            text = st.text_input('Text', placeholder="Enter Text", disabled=False, label_visibility="visible")
-            stdate = st.date_input("From Date", value=(datetime.now() - timedelta(days=1)), disabled=False,
-                                   label_visibility="visible")
-        with col2:
-            hata = st.text_input('#Hastags', placeholder="Enter Hastags", disabled=False, label_visibility="visible")
-            eddate = st.date_input("To Date", disabled=False, label_visibility="visible")
-        with col3:
-            user = st.text_input('User', placeholder="Enter Username", disabled=False, label_visibility="visible")
-            limit = st.number_input("No. of records", min_value=int(1), max_value=int(9999), value=int(1), step=int(1),
-                                    disabled=False, label_visibility="visible")
-        submitted = st.form_submit_button("Submit")
+    # Input field displayed in columns
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        text = st.text_input('Text', placeholder="Enter Text", disabled=False, label_visibility="visible")
+        stdate = st.date_input("From Date", value=(datetime.now() - timedelta(days=1)), disabled=False,
+                               label_visibility="visible")
+    with col2:
+        hata = st.text_input('#Hastags', placeholder="Enter Hastags", disabled=False, label_visibility="visible")
+        eddate = st.date_input("To Date", disabled=False, label_visibility="visible")
+    with col3:
+        user = st.text_input('User', placeholder="Enter Username", disabled=False, label_visibility="visible")
+        limit = st.number_input("No. of records", min_value=int(1), max_value=int(9999), value=int(1), step=int(1),
+                                disabled=False, label_visibility="visible")
 
     # Concatenate the input to be searched
-    if submitted:
-        try:
-            query = f"{text} until:{eddate} since:{stdate}"
-            if hata != "":
-                query = f"{text} (#{hata}) until:{eddate} since:{stdate}"
-            if user != "":
-                query = f"{text} (#{hata}) (from:{user}) until:{eddate} since:{stdate}"
-            limit = int(limit)
+    try:
+        query = f"{text} until:{eddate} since:{stdate}"
+        if hata != "":
+            query = f"{text} (#{hata}) until:{eddate} since:{stdate}"
+        if user != "":
+            query = f"{text} (#{hata}) (from:{user}) until:{eddate} since:{stdate}"
+        limit = int(limit)
 
-            # Calling twiter function to scrape data based on the user input
-            data = twiter_scraping(query, limit)
+        # Calling twiter function to scrape data based on the user input
+        data = twiter_scraping(query, limit)
 
-            # Displaying upload, and dowload buttons
-            if data.empty == False:
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    if st.button("Upload"):
-                        df_to_mongo(df=data)
-                        st.success("Data uploaded successfully")
-                with col2:
-                    st.download_button("Dowload CSV", data=data.to_csv(header=True, index=True), file_name="export_csv",
-                                       on_click=None, disabled=False)
-                with col3:
-                    st.download_button("Dowload json", data=data.to_json(), file_name="export_json", on_click=None,
-                                       disabled=False)
+        # Displaying upload, and dowload buttons
+        if data.empty == False:
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                up_btn = st.button("Upload")
+            if up_btn:
+                df_to_mongo(df=data)
+                st.success("Data uploaded successfully")
+            with col2:
+                st.download_button("Dowload CSV", data=data.to_csv(header=True, index=True), file_name="export_csv",
+                                   on_click=None, disabled=False)
+            with col3:
+                st.download_button("Dowload json", data=data.to_json(), file_name="export_json", on_click=None,
+                                   disabled=False)
 
-                # Display output dataframe
-                st.dataframe(data=data)
-            else:
-                st.info("No Records Found")
-        except:
-            st.warning("Please Enter Valid Data")
+            # Display output dataframe
+            st.dataframe(data=data)
+        else:
+            st.info("No Records Found")
+    except:
+        st.info("Please Enter Data")
 
 
 # **********************************************************************************************************************************************
