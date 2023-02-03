@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+
 # **********************************************************************************************************************************************
 # importing important packages
 import pandas as pd
@@ -9,6 +10,7 @@ import snscrape.modules.twitter as sntwitter
 import streamlit as st
 from datetime import datetime, timedelta
 import time
+import base64
 
 
 # **********************************************************************************************************************************************
@@ -17,9 +19,9 @@ import time
 # function used for twiter scraping
 def twiter_scraping(query, limit):
     tweets = []
-    # Scrapping twiter based on the inputs
     latest_iteration = st.empty()
     bar = st.progress(0)
+    # Scrapping twiter based on the inputs
     for tweet in sntwitter.TwitterSearchScraper(query).get_items():
         if len(tweets) == limit:
             break
@@ -63,13 +65,6 @@ def df_to_mongo(df,
 # streamlit function for UI
 def streamlit_UI():
     st.set_page_config(layout="wide")
-    # Title and header to be dispalyed
-    colT1, colT2 = st.columns([3, 5])
-    with colT2:
-        st.title(' :blue[Twitter Scraping]')
-    colT1, colT2 = st.columns([2, 5])
-    with colT2:
-        header2 = st.subheader(":blue[Welcome!!! Please enter data to be searched]")
 
     # Input field displayed in columns
     with st.sidebar:
@@ -82,17 +77,24 @@ def streamlit_UI():
         limit = st.number_input("No. of records", min_value=int(1), max_value=int(9999), value=int(1), step=int(1),
                                 disabled=False, label_visibility="visible")
 
-    # Concatenate the input to be searched
-    try:
-        query = f"{text} until:{eddate} since:{stdate}"
-        if hata != "":
-            query = f"{text} (#{hata}) until:{eddate} since:{stdate}"
-        if user != "":
-            query = f"{text} (#{hata}) (from:{user}) until:{eddate} since:{stdate}"
-        limit = int(limit)
+    # Title and header to be dispalyed
+    colT1, colT2 = st.columns([3, 5])
+    with colT2:
+        st.title(' :blue[Twitter Scraping]')
 
+    # Concatenate the input to be searched
+    query = f"{text} until:{eddate} since:{stdate}"
+    if hata != "":
+        query = f"{text} (#{hata}) until:{eddate} since:{stdate}"
+    if user != "":
+        query = f"{text} (#{hata}) (from:{user}) until:{eddate} since:{stdate}"
+    limit = int(limit)
+
+    try:
+        data = None
         # Calling twiter function to scrape data based on the user input
-        data = twiter_scraping(query, limit)
+        if text != "" or hata != "" or user != "":
+            data = twiter_scraping(query, limit)
 
         # Displaying upload, and dowload buttons
         if data.empty == False:
@@ -114,7 +116,22 @@ def streamlit_UI():
         else:
             st.info("No Records Found")
     except:
-        st.info("Please Enter Data")
+        if text == "" or hata == "" or user == "":
+            st.info("Please Enter Data In The Sidemenu")
+            file_ = open("C:\\Users\\ADMIN\\Downloads\\VHXm.gif", "rb")
+            contents = file_.read()
+            data_url = base64.b64encode(contents).decode("utf-8")
+            file_.close()
+
+            st.markdown(
+                f'<img src="data:image/gif;base64,{data_url}" alt="cat gif" width="1000" height="400">',
+                unsafe_allow_html=True,
+            )
+        else:
+            st.warning("""Opps! Something went wrong\n
+                       Try the following:\n
+                        1. Enter lower value in 'No. of records'.\n
+                        2. Please check the data entered is correctly spelled.""")
 
 
 # **********************************************************************************************************************************************
