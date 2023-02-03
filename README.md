@@ -1,13 +1,13 @@
 # Twitter_Scraping
 To run the following code:
 
-Go to cmd in windows
+1) Go to cmd in windows
 
-type cd {file path where the script is saved}
+2) type cd {file path where the script is saved}
 
-type streamlit run twitter_scraping.py
+3) type streamlit run twitter_scraping.py
 
-
+*************************************************************************************************************************************************************************
 
 
 
