@@ -1,7 +1,10 @@
 # Twitter_Scraping
 To run the following code:
+
 Go to cmd in windows
+
 type cd {file path where the script is saved}
+
 type streamlit run twitter_scraping.py
 
 
