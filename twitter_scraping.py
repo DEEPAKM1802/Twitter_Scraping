@@ -8,6 +8,7 @@ import pymongo
 import snscrape.modules.twitter as sntwitter
 import streamlit as st
 from datetime import datetime, timedelta
+import time
 
 
 # **********************************************************************************************************************************************
@@ -17,6 +18,8 @@ from datetime import datetime, timedelta
 def twiter_scraping(query, limit):
     tweets = []
     # Scrapping twiter based on the inputs
+    latest_iteration = st.empty()
+    bar = st.progress(0)
     for tweet in sntwitter.TwitterSearchScraper(query).get_items():
         if len(tweets) == limit:
             break
@@ -25,7 +28,16 @@ def twiter_scraping(query, limit):
                 [query, datetime.now(), tweet.date, tweet.id, tweet.url, tweet.content, tweet.username,
                  tweet.replyCount, tweet.retweetCount, tweet.lang, tweet.source, tweet.likeCount])
 
-            # Storing the scrapped data into dataframe(i.e. df)
+            for i in range(10):
+                li = latest_iteration.text(
+                    f"In progress : ({len(tweets)}/{limit})  {int((len(tweets) / limit) * 100)}%")
+                pb = bar.progress(int((len(tweets) / limit) * 100))
+                time.sleep(0.01)
+    time.sleep(1)
+    li.empty()
+    pb.empty()
+
+    # Storing the scrapped data into dataframe(i.e. df)
     df = pd.DataFrame(tweets,
                       columns=['Search Query', 'Timestamp', 'date', 'id', 'url', 'tweet content', 'user', 'reply count',
                                'retweet count', 'language', 'source', 'like count'])
@@ -50,23 +62,23 @@ def df_to_mongo(df,
 
 # streamlit function for UI
 def streamlit_UI():
+    st.set_page_config(layout="wide")
     # Title and header to be dispalyed
-    colT1, colT2 = st.columns([1, 3])
+    colT1, colT2 = st.columns([3, 5])
     with colT2:
         st.title(' :blue[Twitter Scraping]')
-    header2 = st.subheader("Welcome!!! Please enter data to be searched")
+    colT1, colT2 = st.columns([2, 5])
+    with colT2:
+        header2 = st.subheader(":blue[Welcome!!! Please enter data to be searched]")
 
     # Input field displayed in columns
-    col1, col2, col3 = st.columns(3)
-    with col1:
+    with st.sidebar:
         text = st.text_input('Text', placeholder="Enter Text", disabled=False, label_visibility="visible")
+        user = st.text_input('User', placeholder="Enter Username", disabled=False, label_visibility="visible")
+        hata = st.text_input('#Hastags', placeholder="Enter Hastags", disabled=False, label_visibility="visible")
         stdate = st.date_input("From Date", value=(datetime.now() - timedelta(days=1)), disabled=False,
                                label_visibility="visible")
-    with col2:
-        hata = st.text_input('#Hastags', placeholder="Enter Hastags", disabled=False, label_visibility="visible")
         eddate = st.date_input("To Date", disabled=False, label_visibility="visible")
-    with col3:
-        user = st.text_input('User', placeholder="Enter Username", disabled=False, label_visibility="visible")
         limit = st.number_input("No. of records", min_value=int(1), max_value=int(9999), value=int(1), step=int(1),
                                 disabled=False, label_visibility="visible")
 
@@ -84,12 +96,12 @@ def streamlit_UI():
 
         # Displaying upload, and dowload buttons
         if data.empty == False:
-            col1, col2, col3 = st.columns(3)
+            col1, col2, col3 = st.columns([6, 1, 0.9])
             with col1:
-                up_btn = st.button("Upload")
+                up_btn = st.button("Upload", help="Click to Upload the data in MongoDB")
             if up_btn:
                 df_to_mongo(df=data)
-                st.success("Data uploaded successfully")
+                st.success("Data uploaded successfully", icon="✅")
             with col2:
                 st.download_button("Dowload CSV", data=data.to_csv(header=True, index=True), file_name="export_csv",
                                    on_click=None, disabled=False)
