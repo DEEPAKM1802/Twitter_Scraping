@@ -9,6 +9,8 @@ type streamlit run twitter_scraping.py
 
 
 
+
+
 The following is the first project from GUVI datascience course regarding twitter scraping, storing the result in mongodb and building a solid UI from user interaction.
 
 The first block of code includes all the imports for packages used in the program.
