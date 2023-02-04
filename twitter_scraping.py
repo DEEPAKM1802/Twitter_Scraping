@@ -11,6 +11,7 @@ import streamlit as st
 from datetime import datetime, timedelta
 import time
 import base64
+from pathlib import Path
 
 
 # **********************************************************************************************************************************************
@@ -29,15 +30,16 @@ def twiter_scraping(query, limit):
             tweets.append(
                 [query, datetime.now(), tweet.date, tweet.id, tweet.url, tweet.content, tweet.username,
                  tweet.replyCount, tweet.retweetCount, tweet.lang, tweet.source, tweet.likeCount])
-
-            for i in range(10):
-                li = latest_iteration.text(
-                    f"In progress : ({len(tweets)}/{limit})  {int((len(tweets) / limit) * 100)}%")
-                pb = bar.progress(int((len(tweets) / limit) * 100))
-                time.sleep(0.01)
-    time.sleep(1)
-    li.empty()
-    pb.empty()
+            if len(tweets)!=0:
+                for i in range(10):
+                    li = latest_iteration.text(
+                        f"In progress : ({len(tweets)}/{limit})  {int((len(tweets) / limit) * 100)}%")
+                    pb = bar.progress(int((len(tweets) / limit) * 100))
+    bar.empty()
+    if len(tweets) != 0:
+        time.sleep(1)
+        li.empty()
+        pb.empty()
 
     # Storing the scrapped data into dataframe(i.e. df)
     df = pd.DataFrame(tweets,
@@ -64,10 +66,16 @@ def df_to_mongo(df,
 
 # streamlit function for UI
 def streamlit_UI():
-    st.set_page_config(layout="wide")
+    st.set_page_config(page_title="twitter scraper", layout="wide", initial_sidebar_state="collapsed")
+
+    # Title and header to be dispalyed
+    colT1, colT2 = st.columns([3, 5])
+    with colT2:
+        title = st.title(' :blue[Twitter Scraping]')
 
     # Input field displayed in columns
     with st.sidebar:
+        st.write("**Search filter:**")
         text = st.text_input('Text', placeholder="Enter Text", disabled=False, label_visibility="visible")
         user = st.text_input('User', placeholder="Enter Username", disabled=False, label_visibility="visible")
         hata = st.text_input('#Hastags', placeholder="Enter Hastags", disabled=False, label_visibility="visible")
@@ -77,17 +85,13 @@ def streamlit_UI():
         limit = st.number_input("No. of records", min_value=int(1), max_value=int(9999), value=int(1), step=int(1),
                                 disabled=False, label_visibility="visible")
 
-    # Title and header to be dispalyed
-    colT1, colT2 = st.columns([3, 5])
-    with colT2:
-        st.title(' :blue[Twitter Scraping]')
 
     # Concatenate the input to be searched
-    query = f"{text} until:{eddate} since:{stdate}"
     if hata != "":
-        query = f"{text} (#{hata}) until:{eddate} since:{stdate}"
-    if user != "":
-        query = f"{text} (#{hata}) (from:{user}) until:{eddate} since:{stdate}"
+        hata = f"(#{hata})"
+    if user !="":
+        user = f"(from:@{user})"
+    query = f"{text} {hata} {user} until:{eddate} since:{stdate}"
     limit = int(limit)
 
     try:
@@ -114,19 +118,22 @@ def streamlit_UI():
             # Display output dataframe
             st.dataframe(data=data)
         else:
-            st.info("No Records Found")
+            st.info("**No Records Found**")
     except:
-        if text == "" or hata == "" or user == "":
-            st.info("Please Enter Data In The Sidemenu")
-            file_ = open("C:\\Users\\ADMIN\\Downloads\\VHXm.gif", "rb")
-            contents = file_.read()
-            data_url = base64.b64encode(contents).decode("utf-8")
-            file_.close()
+        if text == "" and hata == "" and user == "":
+            col1, col2 = st.columns([1, 6])
+            with col2:
+                p = Path(__file__).with_name('VHXm.gif')
+                file_ = p.open("rb")
+                contents = file_.read()
+                data_url = base64.b64encode(contents).decode("utf-8")
+                file_.close()
 
-            st.markdown(
-                f'<img src="data:image/gif;base64,{data_url}" alt="cat gif" width="1000" height="400">',
-                unsafe_allow_html=True,
-            )
+                st.markdown(
+                    f'<img src="data:image/gif;base64,{data_url}" alt="cat gif" width="1000" height="400">',
+                    unsafe_allow_html=True,
+                )
+            st.info("**Please Enter Data In The Sidemenu**")
         else:
             st.warning("""Opps! Something went wrong\n
                        Try the following:\n
